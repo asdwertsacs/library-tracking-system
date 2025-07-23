@@ -12,7 +12,7 @@ exports.handler = async (event) => {
         await client.connect();
 
         // 1. Check if the book is available
-        const check = await client.query('SELECT status FROM books WHERE id = 1', [bookId]);
+        const check = await client.query('SELECT status FROM books WHERE id = $1', [bookId]);
 
         if (check.rows.length === 0) {
             return {
@@ -29,12 +29,12 @@ exports.handler = async (event) => {
         }
 
         // 2. Update book status to "Borrowed"
-        await client.query('UPDATE books SET status = 1 WHERE id = 2', ['Borrowed', bookId]);
+        await client.query('UPDATE books SET status = $1 WHERE id = $2', ['Borrowed', bookId]);
 
         // 3. Record the borrow in `borrowed_books` table
         await client.query(`
       INSERT INTO borrowed_books (username, book_id)
-      VALUES (1, 2)
+      VALUES ($1, $2)
     `, [username, bookId]);
 
         return {
