@@ -1,22 +1,19 @@
 const { Client } = require('pg');
 
 exports.handler = async function (event) {
+    const { username } = JSON.parse(event.body);
+
     const client = new Client({
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false }
     });
 
-    const username = JSON.parse(event.body).username;
-
     try {
         await client.connect();
-        const result = await client.query(`
-      SELECT b.id, b.title 
-      FROM books b 
-      JOIN borrowed br ON br.book_id = b.id 
-      WHERE br.username = $1 AND b.status = 'Borrowed'
-    `, [username]);
-
+        const result = await client.query(
+            'SELECT * FROM books WHERE borrowed_by = $1',
+            [username]
+        );
         await client.end();
 
         return {

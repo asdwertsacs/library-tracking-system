@@ -31,43 +31,49 @@
     const username = localStorage.getItem('username') || 'student';
 
     // Load Available Books
-    fetch("/.netlify/functions/getBooks")
-      .then(res => res.json())
-      .then(data => {
-        const bookList = document.getElementById('book-list');
-        bookList.innerHTML = '';
+    function loadAvailableBooks() {
+      fetch("/.netlify/functions/getBooks")
+        .then(res => res.json())
+        .then(data => {
+          const bookList = document.getElementById('book-list');
+          bookList.innerHTML = '';
 
-        data.forEach(book => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <strong>${book.title}</strong> - ${book.status}
-            ${book.status === 'Available' ? `<button onclick="borrowBook(${book.id})">Borrow</button>` : '<em>Not Available</em>'}
-          `;
-          bookList.appendChild(li);
-        });
-      })
-      .catch(err => console.error("Fetch error:", err));
+          data.forEach(book => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <strong>${book.title}</strong> - ${book.status}
+              ${book.status === 'Available' ? 
+                `<button onclick="borrowBook(${book.id})">Borrow</button>` : 
+                '<em>Not Available</em>'}
+            `;
+            bookList.appendChild(li);
+          });
+        })
+        .catch(err => console.error("Fetch error:", err));
+    }
 
     // Load Borrowed Books
-    fetch("/.netlify/functions/getBorrowedBooks", {
-      method: "POST",
-      body: JSON.stringify({ username })
-    })
-      .then(res => res.json())
-      .then(data => {
-        const borrowedList = document.getElementById('borrowed-books');
-        borrowedList.innerHTML = '';
-
-        data.forEach(book => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <strong>${book.title}</strong>
-            <button onclick="returnBook(${book.id})">Return</button>
-          `;
-          borrowedList.appendChild(li);
-        });
+    function loadBorrowedBooks() {
+      fetch("/.netlify/functions/getBorrowedBooks", {
+        method: "POST",
+        body: JSON.stringify({ username })
       })
-      .catch(err => console.error("Error loading borrowed books:", err));
+        .then(res => res.json())
+        .then(data => {
+          const borrowedList = document.getElementById('borrowed-books');
+          borrowedList.innerHTML = '';
+
+          data.forEach(book => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <strong>${book.title}</strong>
+              <button onclick="returnBook(${book.id})">Return</button>
+            `;
+            borrowedList.appendChild(li);
+          });
+        })
+        .catch(err => console.error("Error loading borrowed books:", err));
+    }
 
     // Borrow Book
     function borrowBook(bookId) {
@@ -78,7 +84,8 @@
         .then(res => res.json())
         .then(result => {
           alert(result.message);
-          location.reload();
+          loadAvailableBooks();
+          loadBorrowedBooks();
         })
         .catch(err => {
           alert("Error borrowing book.");
@@ -95,13 +102,18 @@
         .then(res => res.json())
         .then(result => {
           alert(result.message);
-          location.reload();
+          loadAvailableBooks();
+          loadBorrowedBooks();
         })
         .catch(err => {
           alert("Error returning book.");
           console.error(err);
         });
     }
+
+    // Initial Load
+    loadAvailableBooks();
+    loadBorrowedBooks();
   </script>
 </body>
 </html>
