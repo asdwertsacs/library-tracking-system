@@ -1,36 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Student Dashboard</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    button {
-      padding: 6px 12px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-  </style>
 </head>
+
 <body>
   <header>
     <h1>Student Dashboard</h1>
@@ -40,61 +16,89 @@
   </header>
 
   <main>
-    <h2>Available Books</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="book-table-body">
-        <!-- Book rows will be inserted here -->
-      </tbody>
-    </table>
+    <section>
+      <h2>Available Books</h2>
+      <ul id="book-list"></ul>
+    </section>
+
+    <section>
+      <h2>Your Borrowed Books</h2>
+      <ul id="borrowed-books"></ul>
+    </section>
   </main>
 
   <script>
+    const username = localStorage.getItem('username') || 'student';
+
+    // Load Available Books
     fetch("/.netlify/functions/getBooks")
       .then(res => res.json())
       .then(data => {
-        const tableBody = document.getElementById('book-table-body');
-        tableBody.innerHTML = '';
+        const bookList = document.getElementById('book-list');
+        bookList.innerHTML = '';
 
         data.forEach(book => {
-          const row = document.createElement('tr');
-
-          row.innerHTML = `
-            <td>${book.title}</td>
-            <td>${book.status}</td>
-            <td>
-              ${book.status === 'Available'
-                ? `<button onclick="borrowBook(${book.id})">Borrow</button>`
-                : '<em>Not Available</em>'}
-            </td>
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <strong>${book.title}</strong> - ${book.status}
+            ${book.status === 'Available' ? `<button onclick="borrowBook(${book.id})">Borrow</button>` : '<em>Not Available</em>'}
           `;
-
-          tableBody.appendChild(row);
+          bookList.appendChild(li);
         });
       })
       .catch(err => console.error("Fetch error:", err));
 
-    function borrowBook(bookId) {
-      const username = localStorage.getItem('username') || 'student';
+    // Load Borrowed Books
+    fetch("/.netlify/functions/getBorrowedBooks", {
+      method: "POST",
+      body: JSON.stringify({ username })
+    })
+      .then(res => res.json())
+      .then(data => {
+        const borrowedList = document.getElementById('borrowed-books');
+        borrowedList.innerHTML = '';
 
+        data.forEach(book => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <strong>${book.title}</strong>
+            <button onclick="returnBook(${book.id})">Return</button>
+          `;
+          borrowedList.appendChild(li);
+        });
+      })
+      .catch(err => console.error("Error loading borrowed books:", err));
+
+    // Borrow Book
+    function borrowBook(bookId) {
       fetch('/.netlify/functions/borrowBook', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookId, username })
       })
         .then(res => res.json())
         .then(result => {
           alert(result.message);
-          location.reload(); // Reload to reflect status change
+          location.reload();
         })
         .catch(err => {
           alert("Error borrowing book.");
+          console.error(err);
+        });
+    }
+
+    // Return Book
+    function returnBook(bookId) {
+      fetch('/.netlify/functions/returnBook', {
+        method: 'POST',
+        body: JSON.stringify({ bookId, username })
+      })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message);
+          location.reload();
+        })
+        .catch(err => {
+          alert("Error returning book.");
           console.error(err);
         });
     }
