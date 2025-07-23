@@ -10,16 +10,20 @@ exports.handler = async function (event) {
 
     try {
         await client.connect();
+
+        // Get borrowed books based on username
         const result = await client.query(
-            'SELECT * FROM books WHERE borrowed_by = 1',
+            'SELECT * FROM books WHERE borrowed_by = $1',
             [username]
         );
+
         await client.end();
 
         return {
             statusCode: 200,
             body: JSON.stringify(result.rows)
         };
+
     } catch (error) {
         console.error("DB error:", error);
         return {
