@@ -28,14 +28,17 @@ exports.handler = async (event) => {
             };
         }
 
-        // 2. Update book status to "Borrowed"
-        await client.query('UPDATE books SET status = $1 WHERE id = $2', ['Borrowed', bookId]);
+        // 2. Update book status and set borrowed_by
+        await client.query(
+            'UPDATE books SET status = $1, borrowed_by = $2 WHERE id = $3',
+            ['Borrowed', username, bookId]
+        );
 
         // 3. Record the borrow in `borrowed_books` table
-        await client.query(`
-      INSERT INTO borrowed_books (username, book_id)
-      VALUES ($1, $2)
-    `, [username, bookId]);
+        await client.query(
+            'INSERT INTO borrowed_books (username, book_id) VALUES ($1, $2)',
+            [username, bookId]
+        );
 
         return {
             statusCode: 200,
