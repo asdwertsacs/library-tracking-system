@@ -10,12 +10,10 @@ exports.handler = async function (event) {
 
     try {
         await client.connect();
-
         const result = await client.query(
             'SELECT * FROM books WHERE borrowed_by = $1',
             [username]
         );
-
         await client.end();
 
         return {
