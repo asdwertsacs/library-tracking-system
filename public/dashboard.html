@@ -54,7 +54,7 @@
 
     // Load Borrowed Books
     function loadBorrowedBooks() {
-      fetch("/.netlify/functions/getBorrowedBooks", {
+      fetch("/.netlify/functions/getborrowedBooks", {
         method: "POST",
         body: JSON.stringify({ username })
       })
