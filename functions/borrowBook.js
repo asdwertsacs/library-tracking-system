@@ -18,7 +18,7 @@ exports.handler = async function (event) {
 
         return {
             statusCode: 200,
-            body: JSON.stringify(result.rows)
+            body: JSON.stringify(result.rows)  // ✅ Correct return
         };
     } catch (error) {
         console.error("DB error:", error);

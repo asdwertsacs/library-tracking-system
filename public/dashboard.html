@@ -54,7 +54,7 @@
 
     // Load Borrowed Books
     function loadBorrowedBooks() {
-      fetch("/.netlify/functions/getborrowedBooks", {
+      fetch("/.netlify/functions/getBorrowedBooks", {
         method: "POST",
         body: JSON.stringify({ username })
       })
@@ -77,21 +77,24 @@
 
     // Borrow Book
     function borrowBook(bookId) {
-      fetch('/.netlify/functions/borrowBook', {
-        method: 'POST',
-        body: JSON.stringify({ bookId, username })
-      })
-        .then(res => res.json())
-        .then(result => {
-          alert(result.message);
-          loadAvailableBooks();
-          loadBorrowedBooks();
+        fetch('/.netlify/functions/borrowBook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookId, username })
         })
-        .catch(err => {
-          alert("Error borrowing book.");
-          console.error(err);
-        });
-    }
+          .then(res => res.json())
+          .then(result => {
+            console.log("Borrow response:", result);
+            alert(result.message || JSON.stringify(result));
+            loadAvailableBooks();
+            loadBorrowedBooks();
+          })
+          .catch(err => {
+            alert("Error borrowing book.");
+            console.error(err);
+          });
+      }
+
 
     // Return Book
     function returnBook(bookId) {
@@ -101,6 +104,9 @@
       })
         .then(res => res.json())
         .then(result => {
+          console.log("Borrow response:", result);  // 🔍 See what we get
+          alert(result.message || "Unknown response from server.");
+          location.reload();
           alert(result.message);
           loadAvailableBooks();
           loadBorrowedBooks();
