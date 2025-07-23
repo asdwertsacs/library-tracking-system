@@ -4,6 +4,32 @@
   <meta charset="UTF-8">
   <title>Student Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    button {
+      padding: 6px 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -12,23 +38,66 @@
       <a href="index.html">Logout</a>
     </nav>
   </header>
+
   <main>
     <h2>Available Books</h2>
-    <ul id="book-list"></ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="book-table-body">
+        <!-- Book rows will be inserted here -->
+      </tbody>
+    </table>
   </main>
+
   <script>
     fetch("/.netlify/functions/getBooks")
       .then(res => res.json())
       .then(data => {
-        const bookList = document.getElementById('book-list');
-        bookList.innerHTML = '';
+        const tableBody = document.getElementById('book-table-body');
+        tableBody.innerHTML = '';
+
         data.forEach(book => {
-          const li = document.createElement('li');
-          li.textContent = `${book.title} - ${book.status}`;
-          bookList.appendChild(li);
+          const row = document.createElement('tr');
+
+          row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.status}</td>
+            <td>
+              ${book.status === 'Available'
+                ? `<button onclick="borrowBook(${book.id})">Borrow</button>`
+                : '<em>Not Available</em>'}
+            </td>
+          `;
+
+          tableBody.appendChild(row);
         });
       })
       .catch(err => console.error("Fetch error:", err));
+
+    function borrowBook(bookId) {
+      const username = localStorage.getItem('username') || 'student';
+
+      fetch('/.netlify/functions/borrowBook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookId, username })
+      })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message);
+          location.reload(); // Reload to reflect status change
+        })
+        .catch(err => {
+          alert("Error borrowing book.");
+          console.error(err);
+        });
+    }
   </script>
 </body>
 </html>
