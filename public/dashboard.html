@@ -100,14 +100,13 @@
     function returnBook(bookId) {
       fetch('/.netlify/functions/returnBook', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookId, username })
       })
         .then(res => res.json())
         .then(result => {
           console.log("Borrow response:", result);  // 🔍 See what we get
           alert(result.message || "Unknown response from server.");
-          location.reload();
-          alert(result.message);
           loadAvailableBooks();
           loadBorrowedBooks();
         })
